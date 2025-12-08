@@ -1,0 +1,26 @@
+FROM eclipse-temurin:11-jdk-jammy
+
+RUN apt-get update && apt-get install -y curl python3 python3-pip \
+    && rm -rf /var/lib/apt/lists/* \
+    && ln -s /usr/bin/python3 /usr/bin/python
+
+ENV SPARK_VERSION=3.5.3
+ENV SPARK_HOME=/opt/spark
+ENV PATH=$SPARK_HOME/bin:$PATH
+ENV PYTHONPATH=$SPARK_HOME/python:$PYTHONPATH
+
+RUN curl -sL https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop3.tgz | tar -xz -C /opt \
+    && mv /opt/spark-${SPARK_VERSION}-bin-hadoop3 /opt/spark
+
+# Download Delta Lake JARs
+RUN curl -sL -o /opt/spark/jars/delta-spark_2.12-3.0.0.jar \
+    https://repo1.maven.org/maven2/io/delta/delta-spark_2.12/3.0.0/delta-spark_2.12-3.0.0.jar \
+    && curl -sL -o /opt/spark/jars/delta-storage-3.0.0.jar \
+    https://repo1.maven.org/maven2/io/delta/delta-storage/3.0.0/delta-storage-3.0.0.jar
+
+# Create a directory placeholder for now
+RUN mkdir -p /opt/spark/jars
+
+RUN pip3 install --no-cache-dir pyspark==3.5.3 delta-spark==3.0.0
+
+WORKDIR /opt/spark
