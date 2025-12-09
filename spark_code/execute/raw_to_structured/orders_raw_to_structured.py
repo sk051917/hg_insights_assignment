@@ -124,12 +124,6 @@ structured_df = clean_df.select(
     current_timestamp().alias("structured_insertion_timestamp")
 )
 
-# Repartition for optimal write performance
-partition_count = max(1, structured_df.count() // 100000)
-if partition_count > 1:
-    logger.info(f"Repartitioning to {partition_count} partitions")
-    structured_df = structured_df.repartition(partition_count)
-
 # =============================================================================
 # WRITE TO STRUCTURED LAYER (MERGE)
 # =============================================================================
