@@ -52,49 +52,6 @@ st.title("📊 ETL Pipeline Dashboard")
 
 tab1, tab2, tab3 = st.tabs(["📥 Data Ingestion", "🔍 Data Quality", "📈 Analytics"])
 
-# with tab1:
-#     st.header("Data Ingestion Summary")
-    
-#     col1, col2, col3 = st.columns(3)
-    
-#     raw_cust = read_delta(RAW_CUSTOMERS)
-#     raw_ord = read_delta(RAW_ORDERS)
-#     raw_prod = read_delta(RAW_PRODUCTS)
-    
-#     struct_cust = read_delta(STRUCT_CUSTOMERS)
-#     struct_ord = read_delta(STRUCT_ORDERS)
-#     struct_prod = read_delta(STRUCT_PRODUCTS)
-
-#     rej_cust = read_delta(STRUCT_CUSTOMERS_REJ)
-#     rej_ord = read_delta(STRUCT_ORDERS_REJ)
-#     rej_prod = read_delta(STRUCT_PRODUCTS_REJ)
-    
-#     with col1:
-#         st.subheader("Customers")
-#         st.metric("Raw", len(raw_cust) if raw_cust is not None else 0)
-#         st.metric("Structured", len(struct_cust) if struct_cust is not None else 0)
-#         st.metric("Rejected", len(rej_cust) if rej_cust is not None else 0)
-    
-#     with col2:
-#         st.subheader("Orders")
-#         st.metric("Raw", len(raw_ord) if raw_ord is not None else 0)
-#         st.metric("Structured", len(struct_ord) if struct_ord is not None else 0)
-#         st.metric("Rejected", len(rej_ord) if rej_ord is not None else 0)
-
-#     with col3:
-#         st.subheader("Products")
-#         st.metric("Raw", len(raw_prod) if raw_prod is not None else 0)
-#         st.metric("Structured", len(struct_prod) if struct_prod is not None else 0)
-#         st.metric("Rejected", len(rej_prod) if rej_prod is not None else 0)
-    
-#     # Ingestion over time
-#     if raw_ord is not None and 'insertion_timestamp' in raw_ord.columns:
-#         st.subheader("Orders Ingestion Over Time")
-#         raw_ord['date'] = raw_ord['insertion_timestamp'].dt.date
-#         daily_ingestion = raw_ord.groupby('date').size().reset_index(name='count')
-#         fig = px.bar(daily_ingestion, x='date', y='count', title="Daily Order Ingestion")
-#         st.plotly_chart(fig, use_container_width=True)
-
 with tab1:
     st.header("Data Ingestion Summary")
     

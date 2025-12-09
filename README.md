@@ -49,7 +49,7 @@ The pipeline generates synthetic e-commerce data with realistic patterns. It mim
    - No transformations applied - data stored as-is
 
 4. **Raw to Structured (Silver Layer)**
-   - `customers_raw_to_structured`: Deduplicates and validates customer records
+   - `customers_raw_to_structured`: Deduplicates and validates customer records. PII data is hashed to anonymize data for compliance purposes.
    - `orders_raw_to_structured`: Validates orders and handles missing data
    - `products_raw_to_structured`: Cleans product data and standardizes formats
    - Data quality checks and cleansing applied
@@ -72,7 +72,7 @@ The pipeline generates synthetic e-commerce data with realistic patterns. It mim
 1. **Clone the repository**
    ```bash
    git clone https://github.com/sk051917/hg_insights_assignment.git
-   cd etl_pipeline
+   cd hg_insights_assignment
    ```
 
 2. **Build Docker images**
@@ -90,25 +90,21 @@ The pipeline generates synthetic e-commerce data with realistic patterns. It mim
      ```bash
      docker-compose ps
      ```
-   - View Airflow logs:
-     ```bash
-     docker-compose logs -f airflow-apiserver
-     ```
 
 ## Accessing the Services
 
 | Service | Port | Local URL | Remote URL (EC2/VM) |
 |---------|------|-----------|---------------------|
-| Airflow Web UI | 8080 | http://localhost:8080 | http://`<ip>`:8080 |
-| Spark Master UI | 8081 | http://localhost:8081 | http://`<ip>`:8081 |
-| Streamlit Dashboard | 8501 | http://localhost:8501 | http://`<ip>`:8501 |
+| Airflow Web UI | 8080 | http://localhost:8080 | http://`<public_ip>`:8080 |
+| Spark Master UI | 8081 | http://localhost:8081 | http://`<public_ip>`:8081 |
+| Streamlit Dashboard | 8501 | http://localhost:8501 | http://`<public_ip>`:8501 |
 | Spark Master | 7077 | spark://spark-master:7077 | (Internal only) |
 
 **Default Airflow Credentials:**
 - Username: `airflow`
 - Password: `airflow`
 
-> **Note**: When running on EC2 or other cloud VMs, replace `<ip>` with your instance's public IP address and ensure security groups allow inbound traffic on the required ports. Also please open ports on your firewall/security group to enable access.
+> **Note**: When running on EC2 or other cloud VMs, replace `<public_ip>` with your instance's public IP address and ensure security groups allow inbound traffic on the required ports. Also please open ports on your firewall/security group to enable access.
 
 ## Pipeline Scheduling
 
@@ -133,10 +129,12 @@ The ETL pipeline runs **hourly** by default. To change the schedule:
 ## Running the Pipeline
 
 ### Option 1: Trigger from Airflow UI
-1. Navigate to http://localhost:8080 or http://<ip>:8080 (In case of vm)
-2. Login with credentials (airflow/airflow)
-3. Find the `etl_pipeline_medallion` DAG
+1. Navigate to http://localhost:8080 or http://<public_ip>:8080 (In case of vm)
+2. Login with credentials (username:`airflow`/pass:`airflow`)
+3. Find the `etl_pipeline_medallion` DAG under `Dags` section
 4. Click the "Play" button to trigger a manual run
+
+>**Important:** During the first pipeline execution, Spark will download required packages (Delta Lake, Hive dependencies) from Maven Central repositories. Ensure your firewall/network allows outbound HTTPS connections.
 
 ### Option 2: Trigger from Command Line
 ```bash
@@ -146,7 +144,8 @@ docker-compose exec airflow-apiserver airflow dags trigger etl_pipeline_medallio
 ### Option 3: Wait for Scheduled Run
 The pipeline will automatically run every hour (at the top of the hour) based on the configured schedule.
 
-## 📁 Project Structure
+
+## Project Structure
 
 ```
 etl_pipeline/
@@ -213,6 +212,8 @@ The project includes a Streamlit dashboard for real-time data visualization and 
 ### Accessing the Dashboard
 Navigate to http://localhost:8501 (or http://<ip>:8501 for remote servers)
 
+> **Note**: Please wait for at least one pipeline run to complete before metrics will appear.
+
 ## Monitoring & Debugging
 
 ### View Logs
@@ -223,7 +224,6 @@ docker-compose logs -f
 # Specific service
 docker-compose logs -f airflow-scheduler
 docker-compose logs -f spark-master
-docker-compose logs -f streamlit-dashboard
 ```
 
 ### Check Service Health
@@ -241,17 +241,6 @@ docker-compose exec spark-master bash
 
 # Spark Worker
 docker-compose exec spark-worker bash
-```
-
-### Inspect Delta Tables
-```bash
-# From Airflow container
-docker-compose exec airflow-apiserver python
-
-# Then in Python:
-from pyspark.sql import SparkSession
-spark = SparkSession.builder.appName("Inspector").getOrCreate()
-spark.sql("SHOW TABLES").show()
 ```
 
 ## Stopping the Pipeline
